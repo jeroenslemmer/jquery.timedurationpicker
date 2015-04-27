@@ -3,12 +3,11 @@
 	<head>
 		<meta charset="utf-8" />
 		<title>Timepicker</title>
-		<link href="jquery-ui.css" rel="stylesheet" />
-		<script src="jquery.js"></script>
-		<script src="jquery-ui.js"></script>
-		<script src="controlled.resizable.jquery-ui.js"></script>
-		<script src="jquery.ui.touch-punch.js"></script>
-		<script src="moment.js"></script>
+		<link href="./css/jquery-ui.css" rel="stylesheet" />
+		<script src="./js/extern/jquery.js"></script>
+		<script src="./js/extern/jquery-ui.js"></script>
+		<script src="./js/extern/jquery.ui.touch-punch.js"></script>
+		<script src="./js/extern/moment.js"></script>
 		<style>
 		
 			body {
@@ -28,7 +27,8 @@
 				position:relative;
 				width : 250px;
 				height : 642px;	
-				border : 1px solid #333;				
+				border : 1px solid #333;		
+				margin : 0 auto;
 			}
 			
 			.slot {
@@ -92,10 +92,17 @@
 				left : 0;
 				height: 120px;
 				width: 100%;
-				background-color : rgba(128,255,128,0.2);
-				color : rgba(64,64,64,0.2);
+				background-color : rgba(128,255,128,0.3);
+				color : rgba(64,64,64,0.05);
 				font-size : 32px;
 				text-align : center;
+			}
+			.bookspace p{
+				cursor : pointer;
+			}
+			
+			.bookspace.space-too-small {
+				background-color : rgba(255,128,128,0.3);
 			}
 			
 			#bookspace1{
@@ -103,6 +110,9 @@
 			}
 			#bookspace2{
 				top : 300px;
+				height : 80px;
+				
+				
 			}
 			.candropnow {
 				background-color :  rgba(128,255,128,0.6);
@@ -110,6 +120,7 @@
 
 		</style>
 		<script>
+	
 			function draggableOut(){
 				var parent = mybooking.parent();
 				var bookingTop = mybooking.position().top;
@@ -121,6 +132,12 @@
 				return 0;
 			}
 			
+			function draggableFits(bookspace){
+				return bookspace.height() >= mybooking.height();
+			}
+			
+
+
 			$(function(){
 				slotpx = 20;
 				slotsize = 30;
@@ -135,6 +152,7 @@
 				.draggable({
 					axis: "y",
 					containment: "#bookday",
+					
 					grid: [0, slotpx],
 					start: function(event,ui){
 						mybooking[0].droppedTop = mybooking.position().top; 
@@ -156,19 +174,32 @@
 					minHeight : minDuration/slotsize*slotpx,
 					maxHeight : maxDuration/slotsize*slotpx,
 					handles : 's',
-					resize : function(event, ui){},
+					resize : function(event, ui){
+						$('.bookspace').each(function(){
+							if (mybooking.height() > $(this).height()) {
+								$(this)
+									.addClass('space-too-small')
+									.droppable('disable')
+									.find('>p').text('PAST NIET HIER');
+							} else {
+								$(this)
+									.removeClass('space-too-small')
+									.droppable('enable')
+									.find('>p').text('VRIJ');
+							}
+						});
+					},
 					start :  function(event, ui){}
 				});
 				$('.bookspace').droppable({
 					accept: '#booking',
 					hoverClass: "candropnow",
 					drop: function(event,ui){
-		
-						oldparent = mybooking.parent()[0];
-						newparent = this;
-						if (newparent.id != oldparent.id){
-							var oldTop = $(oldparent).position().top;
-							var newTop = $(newparent).position().top;
+						oldparent = mybooking.parent();
+						newparent = $(this);
+						if (newparent[0].id != oldparent[0].id){
+							var oldTop = oldparent.position().top;
+							var newTop = newparent.position().top;
 							
 							deltaTop = newTop - oldTop;
 							mybooking.appendTo('#'+this.id);
@@ -184,7 +215,22 @@
 						mybooking[0].droppedTop = bookTop;
 					}
 				});
+				
+				$('.bookspace').click(function(){
 
+
+						if (!$(this).droppable( "option", "disabled" )){
+							oldparent = mybooking.parent();
+							newparent = $(this);
+							if (newparent[0].id != oldparent[0].id){
+								mybooking.appendTo('#'+this.id);
+								var bookTop = 0;
+								mybooking.css('top',bookTop);
+								mybooking[0].droppedTop = bookTop;						
+							}
+					}
+				});
+				
 				function timeString(totalminutes){
 					var hours = (Math.floor(totalminutes / 60)).toString();
 					var minutes = (totalminutes % 60).toString();
@@ -204,23 +250,21 @@
 			});
 		</script>
 	</head>
-	
-	
+
 	<body>
-		<div class="frame">
 			<div id="bookday-container">
 				<div id="bookday" >
 				
-					<div id="bookspace1" class="bookspace">VRIJ
+					<div id="bookspace1" class="bookspace"><p>VRIJ</p>
 						<div id="booking"><p>Barbecueboot?</p></div>
 					</div>
-					<div id="bookspace2" class="bookspace">VRIJ
+					<div id="bookspace2" class="bookspace"><p>VRIJ</p>
 					</div>
 	
 						
 					</div>
 				</div>
 			</div>
-		</div>
+
 	</body>
 </html>
