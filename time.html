@@ -2,269 +2,33 @@
 <html>
 	<head>
 		<meta charset="utf-8" />
-		<title>Timepicker</title>
+		<title>timespanpicker</title>
 		<link href="./css/jquery-ui.css" rel="stylesheet" />
+		<link href="./css/timespanpicker.css" rel="stylesheet" />
 		<script src="./js/extern/jquery.js"></script>
 		<script src="./js/extern/jquery-ui.js"></script>
-		<script src="./js/extern/jquery.ui.touch-punch.js"></script>
+		<script src="./js/extern/jquery.ui.touch-punch.js"></script>	
 		<script src="./js/extern/moment.js"></script>
+		<script src="./js/extern/timespanpicker.js"></script>
 		<style>
-		
 			body {
-				font-family : Verdana, Tahoma;
-				margin : 20px auto;
-			}
-			* {
-				box-sizing : border-box;
-			}
-			
-			div, p {
-				margin : 0;
-				padding : 0;
+				font-family: Verdana, Tahoma;
+				margin: 20px auto;
 			}
 			
 			#bookday-container{
-				position:relative;
-				width : 250px;
-				height : 642px;	
-				border : 1px solid #333;		
-				margin : 0 auto;
+				margin: 0 auto;
 			}
-			
-			.slot {
-				font-size : 10px;
-				width : 248px;
-				float : left;
-				border-bottom : 1px solid #aaa;	
-				height : 20px;
-				line-height: 20px;
-			}
-			.slot span {
-				display: inline-block;
-				width : 40px;
-				vertical-align : bottom;
-				text-align : right;
-			}
-
-			#bookday {
-				position: absolute;
-				top: 0px;
-				right: 0px;
-				width : 200px;
-				height : 640px;
-				border-left : 1px solid #999;
-				background-color: rgba(255,220,220,0.6);
-			}
-			
-			#booking {
-				
-				font-size : 11px;
-				font-family : Verdana, Tahoma;
-				font-weight : bold;
-				color : #666699;
-				position : absolute;
-				right : 0px;
-				top : 0px;
-				width : 100%;
-				height : 100px;
-				background-color : #e0e0ff;
-				cursor : pointer;
-				z-index : 999;
-			}
-			#booking p {
-				padding : 5px;
-			}
-			
-			.ui-resizable-s {
-				position : absolute;
-				bottom: 0px;
-				left: 0px;
-				height : 15px;
-				width : 100%;
-				background-color : #bbbbdd !important;
-				border-bottom : 2px #555588 solid;
-				cursor:ns-resize;
-				color : white;
-			}
-			
-			.bookspace {
-				position : absolute;
-				left : 0;
-				height: 120px;
-				width: 100%;
-				background-color : rgba(128,255,128,0.3);
-				color : rgba(64,64,64,0.05);
-				font-size : 32px;
-				text-align : center;
-			}
-			.bookspace p{
-				cursor : pointer;
-			}
-			
-			.bookspace.space-too-small {
-				background-color : rgba(255,128,128,0.3);
-			}
-			
-			#bookspace1{
-				top : 0px;
-			}
-			#bookspace2{
-				top : 300px;
-				height : 80px;
-				
-				
-			}
-			.candropnow {
-				background-color :  rgba(128,255,128,0.6);
-			}
-
 		</style>
 		<script>
-	
-			function draggableOut(){
-				var parent = mybooking.parent();
-				var bookingTop = mybooking.position().top;
-				var bookingHeight = mybooking.height();
-				var parentHeight = parent.height();
-				var tooFar = bookingTop + bookingHeight - parentHeight;
-				if (tooFar > 0) 								return tooFar;
-				if (bookingTop < 0)							return bookingTop;
-				return 0;
-			}
-			
-			function draggableFits(bookspace){
-				return bookspace.height() >= mybooking.height();
-			}
-			
-
-
-			$(function(){
-				slotpx = 20;
-				slotsize = 30;
-				minDuration = 60;
-				maxDuration = 150;
-				starttime=540;
-				endtime = 1440;
-				bookingduration = 60;
-				max = Math.floor((endtime - starttime)/slotsize);
-
-				mybooking = $('#booking')
-				.draggable({
-					axis: "y",
-					containment: "#bookday",
-					
-					grid: [0, slotpx],
-					start: function(event,ui){
-						mybooking[0].droppedTop = mybooking.position().top; 
-					},
-					drag : function(event,ui){
-						mybooking.draggable('option','grid',((draggableOut() != 0)?false:[0, slotpx]));
-					},
-					stop : function(event, ui){
-						var bookTop = mybooking.position().top;
-						var droppedTop = mybooking[0].droppedTop;
-						if (bookTop != mybooking[0].droppedTop){
-							mybooking.animate({'top': droppedTop+'px'},100);
-						}
-					}
-				})
-				.resizable({
-					grid : [0, slotpx],
-					containment: "parent",
-					minHeight : minDuration/slotsize*slotpx,
-					maxHeight : maxDuration/slotsize*slotpx,
-					handles : 's',
-					resize : function(event, ui){
-						$('.bookspace').each(function(){
-							if (mybooking.height() > $(this).height()) {
-								$(this)
-									.addClass('space-too-small')
-									.droppable('disable')
-									.find('>p').text('PAST NIET HIER');
-							} else {
-								$(this)
-									.removeClass('space-too-small')
-									.droppable('enable')
-									.find('>p').text('VRIJ');
-							}
-						});
-					},
-					start :  function(event, ui){}
-				});
-				$('.bookspace').droppable({
-					accept: '#booking',
-					hoverClass: "candropnow",
-					drop: function(event,ui){
-						oldparent = mybooking.parent();
-						newparent = $(this);
-						if (newparent[0].id != oldparent[0].id){
-							var oldTop = oldparent.position().top;
-							var newTop = newparent.position().top;
-							
-							deltaTop = newTop - oldTop;
-							mybooking.appendTo('#'+this.id);
-							bookTop = mybooking.position().top-deltaTop;
-							mybooking.appendTo('#'+this.id);
-						} else {
-							bookTop = mybooking.position().top;
-						}
-						bookTop = bookTop - bookTop%slotpx;
-						mybooking.css('top',bookTop);
-						
-						bookTop -= draggableOut();
-						mybooking[0].droppedTop = bookTop;
-					}
-				});
-				
-				$('.bookspace').click(function(){
-
-
-						if (!$(this).droppable( "option", "disabled" )){
-							oldparent = mybooking.parent();
-							newparent = $(this);
-							if (newparent[0].id != oldparent[0].id){
-								mybooking.appendTo('#'+this.id);
-								var bookTop = 0;
-								mybooking.css('top',bookTop);
-								mybooking[0].droppedTop = bookTop;						
-							}
-					}
-				});
-				
-				function timeString(totalminutes){
-					var hours = (Math.floor(totalminutes / 60)).toString();
-					var minutes = (totalminutes % 60).toString();
-					if (minutes.length == 1) minutes +='0';
-					return hours+':'+minutes;
-				}
-				$('.ui-resizable-s ').text('=');
-				$('#bookday').css('height',max*slotpx);
-				$('#bookday-container').css('height',max*slotpx+2);
-				$('#booking').css('height',bookingduration/slotsize*slotpx);
-				for (var t = 0; t < max; t++){
-					var timestr = timeString(starttime+t*slotsize);
-					$('#bookday-container').append(
-						'<div class="slot"><span>'+timestr+'</span></div>'
-					)
-				}
-			});
+		$(function(){
+			exampleBookspaces = [{start: '9:00', end: '12:00'},{start: '13:30',end: '15:00'},{start: '16:30', end: '18:30'},{start: '21:30', end: '23:30'}];
+			mytimespanpicker = new timespanpicker('bookday-container', exampleBookspaces,{title: 'BBQ-boei', startDuration: 90});
+		});
 		</script>
 	</head>
 
 	<body>
-			<div id="bookday-container">
-				<div id="bookday" >
-				
-					<div id="bookspace1" class="bookspace"><p>VRIJ</p>
-						<div id="booking"><p>Barbecueboot?</p></div>
-					</div>
-					<div id="bookspace2" class="bookspace"><p>VRIJ</p>
-					</div>
-	
-						
-					</div>
-				</div>
-			</div>
-
+			<div id="bookday-container"></div>
 	</body>
 </html>
